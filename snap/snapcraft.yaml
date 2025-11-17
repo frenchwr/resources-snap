@@ -1,0 +1,86 @@
+name: resources
+# The latest upstream version is 1.9.0 but this requires a
+# version (1.8.0) of libadwaita that is not available from the Ubuntu
+# package archive (current is 1.7.4). It is not trivial to update this
+# dependency since it's tied to the gnome snapcraft extension.
+version: 1.8.0
+summary: Keep an eye on system resources
+description: |
+  Resources is a simple yet powerful monitor for your system resources
+  and processes, written in Rust and using GTK 4 and libadwaita for its
+  GUI. It’s capable of displaying usage and details of your CPU, memory,
+  GPUs, NPUs, network interfaces and block devices. It’s also capable
+  of listing and terminating running graphical applications as well as
+  processes.
+
+  Resources is not a program that will try to display every single
+  possible piece of information about each tiny part of your device.
+  Instead, it aims to strike a balance between information richness,
+  user-friendliness and a balanced user interface — showing you most
+  of the information most of you need most of the time.
+
+website: https://github.com/nokyan/resources
+contact: https://github.com/frenchwr/resources-snap/issues
+issues: https://github.com/frenchwr/resources-snap/issues
+source-code: https://github.com/nokyan/resources
+license: GPL-3.0+
+
+grade: devel
+confinement: strict
+base: core24
+compression: lzo
+
+platforms:
+  amd64:
+  arm64:
+
+plugs:
+  usr-share:
+    interface: system-files
+    read:
+      - /var/lib/snapd/hostfs/usr/share
+
+# Allow app to own D-Bus service
+slots:
+  dbus-resources:
+    interface: dbus
+    bus: session
+    name: net.nokyan.Resources
+
+apps:
+  resources:
+    extensions: [gnome]
+    command: usr/bin/resources
+    desktop: usr/share/applications/net.nokyan.Resources.desktop
+    common-id: net.nokyan.Resources
+    plugs:
+      - process-control # support app termination feature
+      - hardware-observe # access /sys and /proc for system monitoring
+      - desktop-launch # access app desktop files for other snaps installed on system
+      - usr-share # access icon data for system packages on the host (e.g. debs)
+    slots:
+      - dbus-resources
+    environment:
+      XDG_DATA_DIRS: /var/lib/snapd/desktop:/var/lib/snapd/hostfs/usr/share
+
+parts:
+  
+  resources:
+    plugin: rust
+    source-type: git
+    source: https://github.com/nokyan/resources
+    source-tag: v$SNAPCRAFT_PROJECT_VERSION
+    override-pull: |
+      craftctl default
+      sed -i 's|@PKGDATADIR@|"/snap/resources/current/usr/share/resources"|' src/config.rs.in
+      sed -i 's|@LIBEXECDIR@|"/snap/resources/current/usr/libexec/resources"|' src/config.rs.in
+      sed -i 's|@LOCALEDIR@|"/snap/resources/current/usr/share/locale"|' src/config.rs.in
+      sed -i -E 's|Icon=.*|Icon=/usr/share/icons/hicolor/scalable/apps/net.nokyan.Resources.svg|' data/net.nokyan.Resources.desktop.in.in
+      sed -i 's|\(const PATH_PCI_IDS: &str = "\)/usr|\1/var/lib/snapd/hostfs/usr|' src/utils/pci.rs
+    build-packages:
+      - libadwaita-1-0
+      - meson
+      - ninja-build
+    override-build: |
+      meson . build --prefix=${CRAFT_PART_INSTALL}/usr -Dprofile=default
+      ninja -C build install
