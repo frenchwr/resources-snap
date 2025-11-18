@@ -67,6 +67,7 @@ parts:
   
   resources:
     plugin: rust
+    rust-channel: "1.91"
     source-type: git
     source: https://github.com/nokyan/resources
     source-tag: v$SNAPCRAFT_PROJECT_VERSION
@@ -84,3 +85,6 @@ parts:
     override-build: |
       meson . build --prefix=${CRAFT_PART_INSTALL}/usr -Dprofile=default
       ninja -C build install
+    build-environment:
+      - RUSTC: /snap/bin/rustc
+      - CARGO: /snap/bin/cargo
