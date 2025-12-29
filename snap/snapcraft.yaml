@@ -56,6 +56,7 @@ apps:
     plugs:
       - process-control # support app termination feature
       - hardware-observe # access /sys and /proc for system monitoring
+      - system-observe # allow read access to additional data in /proc
       - desktop-launch # access app desktop files for other snaps installed on system
       - usr-share # access icon data for system packages on the host (e.g. debs)
     slots:
