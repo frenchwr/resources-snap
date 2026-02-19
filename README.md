@@ -16,5 +16,6 @@ Eventually I aim to auto-connect these (pending approval from the Snap Store tea
 sudo snap connect resources:desktop-launch
 sudo snap connect resources:process-control
 sudo snap connect resources:hardware-observe
+sudo snap connect resources:system-observe
 sudo snap connect resources:usr-share
 ```
